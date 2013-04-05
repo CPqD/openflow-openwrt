@@ -1,0 +1,31 @@
+--- ofsoftswitch13-open_wrt/lib/util.c
++++ ofsoftswitch13-open_wrt/lib/util.c
+@@ -138,16 +138,6 @@
+     return s;
+ }
+ 
+-void
+-strlcpy(char *dst, const char *src, size_t size)
+-{
+-    if (size > 0) {
+-        size_t n = strlen(src);
+-        size_t n_copy = MIN(n, size - 1);
+-        memcpy(dst, src, n_copy);
+-        dst[n_copy] = '\0';
+-    }
+-}
+ 
+ void
+ ofp_fatal(int err_no, const char *format, ...)
+--- CPqD-ofsoftswitch13-7fa7eae/lib/util.h
++++ CPqD-ofsoftswitch13-7fa7eae/lib/util.h
+@@ -105,9 +105,6 @@
+ char *xvasprintf(const char *format, va_list) PRINTF_FORMAT(1, 0) MALLOC_LIKE;
+ void *x2nrealloc(void *p, size_t *n, size_t s);
+ 
+-#ifndef HAVE_STRLCPY
+-void strlcpy(char *dst, const char *src, size_t size);
+-#endif
+ 
+ void ofp_fatal(int err_no, const char *format, ...)
+     PRINTF_FORMAT(2, 3) NO_RETURN;

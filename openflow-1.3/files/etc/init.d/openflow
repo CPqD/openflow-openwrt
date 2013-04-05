@@ -1,0 +1,22 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006 OpenWrt.org
+
+START=43
+STOP=57
+
+boot() {
+	ofup -a
+}
+
+start() {
+	ofup -a
+}
+
+restart() {
+	stop
+	start
+}
+
+stop() {
+	ofdown -a
+}

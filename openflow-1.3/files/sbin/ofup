@@ -1,0 +1,33 @@
+#!/bin/sh
+# Copyright (C) 2006 OpenWrt.org
+
+/sbin/ofdown "$@"
+. /etc/functions.sh
+
+if [ -x /etc/preopenflow.user ]
+then
+	/etc/preopenflow.user
+fi
+
+[ $# = 0 ] && { echo "  $0 <group>"; exit; }
+[ "x$1" = "x-a" ] && {
+#	[ -e "/tmp/resolv.conf.auto" ] && rm /tmp/resolv.conf.auto
+	config_cb() {
+		[ ofswitch != "$1" -o -z "$2" ] || eval "$0 $2"
+	}
+	config_load openflow
+	exit
+}
+include /lib/openflow
+
+scan_ofinterfaces
+
+setup_ofswitch "$1"
+sleep 3
+setup_box "$1"
+setup_ofprotocol "$1"
+
+if [ -x /etc/postopenflow.user ]
+then
+	/etc/postopenflow.user
+fi

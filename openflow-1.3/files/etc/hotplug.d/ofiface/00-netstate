@@ -1,0 +1,4 @@
+[ ifup = "$ACTION" ] && {
+	uci_set_state openflow "$INTERFACE" up 1 
+	[ -n "$DEVICE" ] && uci_set_state openflow "$INTERFACE" ifname "$DEVICE"
+}

@@ -1,0 +1,10 @@
+--- ofsoftswitch13-open_wrt/Makefile.am
++++ ofsoftswitch13-open_wrt/Makefile.am
+@@ -64,7 +64,6 @@
+ include utilities/automake.mk
+ include udatapath/automake.mk
+ include include/automake.mk
+-include debian/automake.mk
+ 
+ netpdldir = $(datadir)/openflow
+ netpdl_DATA = customnetpdl.xml

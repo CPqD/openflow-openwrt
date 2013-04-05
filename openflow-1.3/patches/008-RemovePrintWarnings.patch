@@ -1,0 +1,1263 @@
+--- ofsoftswitch13-open_wrt/oflib/ofl-actions-print.c
++++ ofsoftswitch13-open_wrt/oflib/ofl-actions-print.c
+@@ -54,7 +54,7 @@
+ ofl_action_to_string(struct ofl_action_header *act, struct ofl_exp *exp) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_action_print(stream, act, exp);
+     fclose(stream);
+@@ -109,7 +109,7 @@
+             fprintf(stream, "{eth=\"0x%04"PRIx16"\"}", a->ethertype);
+             break;
+         }
+-        case OFPAT_POP_VLAN: 
++        case OFPAT_POP_VLAN:
+         case OFPAT_POP_PBB: {
+             break;
+         }
+--- CPqD-ofsoftswitch13-7fa7eae/oflib/ofl-messages-print.c
++++ CPqD-ofsoftswitch13-7fa7eae/oflib/ofl-messages-print.c
+@@ -329,7 +329,7 @@
+             break;
+         }
+         case OFPMP_TABLE_FEATURES: {
+-            ofl_msg_print_table_features_request((struct ofl_msg_multipart_request_table_features*)msg, stream);        
++            ofl_msg_print_table_features_request((struct ofl_msg_multipart_request_table_features*)msg, stream);
+             break;
+         }
+         case OFPMP_PORT_STATS: {
+@@ -357,7 +357,7 @@
+         }
+         case OFPMP_METER_FEATURES:{
+             break;
+-        }    
++        }
+         case OFPMP_PORT_DESC:{
+             break;
+         }
+@@ -510,17 +510,17 @@
+         fprintf(stream, ": max_groups=%d, actions= ", msg->max_groups[i]);
+         if(msg->actions[i] & 1){
+             ofl_action_type_print(stream, OFPAT_OUTPUT);
+-            fprintf(stream, "/");    
++            fprintf(stream, "/");
+ 
+         }
+         if(msg->actions[i] & OFPAT_COPY_TTL_OUT){
+             ofl_action_type_print(stream, OFPAT_COPY_TTL_OUT);
+-            fprintf(stream, "/");    
++            fprintf(stream, "/");
+ 
+         }
+-        if(msg->actions[i] & OFPAT_COPY_TTL_IN){    
++        if(msg->actions[i] & OFPAT_COPY_TTL_IN){
+             ofl_action_type_print(stream, OFPAT_COPY_TTL_IN);
+-            fprintf(stream, "/");      
++            fprintf(stream, "/");
+         }
+         for(j = OFPAT_SET_MPLS_TTL; j < OFPAT_POP_PBB; j++){
+             if (msg->actions[i] & j){
+@@ -558,7 +558,7 @@
+ static void
+ ofl_msg_print_port_desc_reply(struct ofl_msg_multipart_reply_port_desc *msg, FILE *stream) {
+     size_t i;
+-    
++
+     for(i = 0; i < msg->stats_num; i++){
+         ofl_structs_port_print(stream, msg->stats[i]);
+         if (i < msg->stats_num - 1) { fprintf(stream, ", "); };
+@@ -630,7 +630,7 @@
+         }
+         case OFPMP_METER_CONFIG:{
+             ofl_msg_print_stats_reply_meter_conf((struct ofl_msg_multipart_reply_meter_conf*)msg, stream);
+-            break;            
++            break;
+         }
+         case OFPMP_METER_FEATURES:{
+             ofl_msg_print_reply_meter_features((struct ofl_msg_multipart_reply_meter_features*)msg, stream);
+@@ -672,16 +672,16 @@
+     fprintf(stream, "]}");
+ }
+ 
+-static void 
++static void
+ ofl_msg_print_role_msg(struct ofl_msg_role_request *msg, FILE *stream){
+-    
++
+     fprintf(stream, "{role= %d, generation_id= %lld}", msg->role, msg->generation_id);
+ 
+ }
+ 
+ static void
+ ofl_msg_print_async(struct ofl_msg_async_config* msg, FILE *stream){
+-    
++
+     fprintf(stream, "{");
+     ofl_structs_async_config_print(stream, msg->config);
+     fprintf(stream, "}");
+@@ -692,7 +692,7 @@
+ ofl_msg_to_string(struct ofl_msg_header *msg, struct ofl_exp *exp) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_msg_print(stream, msg, exp);
+     fclose(stream);
+@@ -749,19 +749,19 @@
+         /*Role messages */
+         case OFPT_ROLE_REQUEST:
+         case OFPT_ROLE_REPLY:{
+-            ofl_msg_print_role_msg((struct ofl_msg_role_request*)msg, stream);        
++            ofl_msg_print_role_msg((struct ofl_msg_role_request*)msg, stream);
+         }
+         /* Queue Configuration messages. */
+         case OFPT_QUEUE_GET_CONFIG_REQUEST: { ofl_msg_print_queue_get_config_request((struct ofl_msg_queue_get_config_request *)msg, stream); return; }
+         case OFPT_QUEUE_GET_CONFIG_REPLY: { ofl_msg_print_queue_get_config_reply((struct ofl_msg_queue_get_config_reply *)msg, stream); return; }
+-		
++
+ 		/* Asynchronous message configuration. */
+ 		case OFPT_GET_ASYNC_REQUEST:{return;}
+         case OFPT_GET_ASYNC_REPLY:
+-        case OFPT_SET_ASYNC:{ofl_msg_print_async((struct ofl_msg_async_config*)msg, stream); return;}		
+-		
++        case OFPT_SET_ASYNC:{ofl_msg_print_async((struct ofl_msg_async_config*)msg, stream); return;}
++
+ 		case OFPT_METER_MOD: {ofl_msg_print_meter_mod((struct ofl_msg_meter_mod*)msg, stream); return;}
+-			    	
++
+ 	}
+ }
+ 
+--- CPqD-ofsoftswitch13-7fa7eae/oflib/ofl-print.c
++++ CPqD-ofsoftswitch13-7fa7eae/oflib/ofl-print.c
+@@ -45,7 +45,7 @@
+ ofl_port_to_string(uint32_t port) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_port_print(stream, port);
+     fclose(stream);
+@@ -71,7 +71,7 @@
+ ofl_ipv6_ext_hdr_to_string(uint16_t ext_hdr){
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_ipv6_ext_hdr_print(stream, ext_hdr);
+     fclose(stream);
+@@ -96,7 +96,7 @@
+ ofl_queue_to_string(uint32_t queue) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_queue_print(stream, queue);
+     fclose(stream);
+@@ -116,7 +116,7 @@
+ ofl_group_to_string(uint32_t group) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_group_print(stream, group);
+     fclose(stream);
+@@ -138,7 +138,7 @@
+ ofl_table_to_string(uint8_t table) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_table_print(stream, table);
+     fclose(stream);
+@@ -159,7 +159,7 @@
+ ofl_vlan_vid_to_string(uint32_t vid) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_vlan_vid_print(stream, vid);
+     fclose(stream);
+@@ -181,7 +181,7 @@
+ ofl_action_type_to_string(uint16_t type) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_action_type_print(stream, type);
+     fclose(stream);
+@@ -216,7 +216,7 @@
+ ofl_oxm_type_to_string(uint16_t type) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_oxm_type_print(stream, type);
+     fclose(stream);
+@@ -276,7 +276,7 @@
+ ofl_instruction_type_to_string(uint16_t type) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_instruction_type_print(stream, type);
+     fclose(stream);
+@@ -302,7 +302,7 @@
+ ofl_queue_prop_type_to_string(uint16_t type) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_queue_prop_type_print(stream, type);
+     fclose(stream);
+@@ -323,7 +323,7 @@
+ ofl_error_type_to_string(uint16_t type) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_error_type_print(stream, type);
+     fclose(stream);
+@@ -354,7 +354,7 @@
+ ofl_error_code_to_string(uint16_t type, uint16_t code) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_error_code_print(stream, type, code);
+     fclose(stream);
+@@ -488,7 +488,7 @@
+ ofl_message_type_to_string(uint16_t type) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_message_type_print(stream, type);
+     fclose(stream);
+@@ -536,7 +536,7 @@
+ ofl_buffer_to_string(uint32_t buffer) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_buffer_print(stream, buffer);
+     fclose(stream);
+@@ -557,7 +557,7 @@
+ ofl_packet_in_reason_to_string(uint8_t reason) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_packet_in_reason_print(stream, reason);
+     fclose(stream);
+@@ -579,7 +579,7 @@
+ ofl_flow_removed_reason_to_string(uint8_t reason) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_flow_removed_reason_print(stream, reason);
+     fclose(stream);
+@@ -604,7 +604,7 @@
+ ofl_port_status_reason_to_string(uint8_t reason) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_port_status_reason_print(stream, reason);
+     fclose(stream);
+@@ -627,7 +627,7 @@
+ ofl_flow_mod_command_to_string(uint8_t command) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_flow_mod_command_print(stream, command);
+     fclose(stream);
+@@ -652,7 +652,7 @@
+ ofl_group_mod_command_to_string(uint16_t command) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_group_mod_command_print(stream, command);
+     fclose(stream);
+@@ -673,7 +673,7 @@
+ ofl_meter_mod_command_to_string(uint16_t command) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_meter_mod_command_print(stream, command);
+     fclose(stream);
+@@ -694,7 +694,7 @@
+ ofl_meter_band_type_to_string(uint16_t type) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_meter_band_type_print(stream, type);
+     fclose(stream);
+@@ -723,7 +723,7 @@
+ char *
+ ofl_group_type_to_string(uint8_t type) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_group_type_print(stream, type);
+     fclose(stream);
+@@ -738,7 +738,7 @@
+ ofl_stats_type_to_string(uint16_t type) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_stats_type_print(stream, type);
+     fclose(stream);
+     return str;
+@@ -760,13 +760,13 @@
+         case (OFPMP_METER):         { fprintf(stream, "mstats"); return; }
+         case (OFPMP_METER_CONFIG):  { fprintf(stream, "mconf"); return; }
+         case (OFPMP_METER_FEATURES):{ fprintf(stream, "mfeat"); return; }
+-        case (OFPMP_PORT_DESC):     { fprintf(stream, "port-desc"); return; }   
++        case (OFPMP_PORT_DESC):     { fprintf(stream, "port-desc"); return; }
+         case (OFPMP_EXPERIMENTER):  { fprintf(stream, "exp"); return; }
+         default: {                    fprintf(stream, "?(%u)", type); return; }
+     }
+ }
+ 
+-void 
++void
+ ofl_properties_type_print(FILE *stream, uint16_t type){
+     switch(type){
+         case (OFPTFPT_INSTRUCTIONS):        { fprintf(stream, "instructions"); return; }
+@@ -785,7 +785,7 @@
+         case (OFPTFPT_APPLY_SETFIELD_MISS):{ fprintf(stream, "apply_setfield_miss"); return; }
+         case (OFPTFPT_EXPERIMENTER):        { fprintf(stream, "experimenter"); return; }
+         case (OFPTFPT_EXPERIMENTER_MISS):   { fprintf(stream, "experimenter_miss"); return; }
+-        default: {                            fprintf(stream, "?(%u)", type); return; }            
++        default: {                            fprintf(stream, "?(%u)", type); return; }
+     }
+ }
+ 
+@@ -797,95 +797,95 @@
+     fprintf(stream, "packet_in(" );
+     if(packet_in_mask &  (1 << 0)){
+        fprintf(stream, "no_match");
+-       e = true; 
++       e = true;
+     }
+     if(packet_in_mask & ((1 << 1))){
+         if(e)
+             fprintf(stream,", ");
+         fprintf(stream, "action");
+-        e = true;  
++        e = true;
+     }
+     if(packet_in_mask & ((1 << 2))){
+         if(e)
+-            fprintf(stream,", ");    
++            fprintf(stream,", ");
+         fprintf(stream, "invalid_ttl");
+         e = true;
+     }
+     if (!e)
+-        fprintf(stream, "none"); 
++        fprintf(stream, "none");
+     fprintf(stream, ")" );
+ }
+ 
+ void
+ ofl_async_port_status(FILE *stream, uint32_t port_status_mask){
+     bool e = false;
+-    
++
+     fprintf(stream, "port_status(" );
+     if(port_status_mask&  (1 << 0)){
+         fprintf(stream, "add");
+-        e = true;   
+-    }    
++        e = true;
++    }
+     if(port_status_mask & ((1 << 1))){
+         if(e)
+-            fprintf(stream,", ");        
+-        fprintf(stream, "delete"); 
++            fprintf(stream,", ");
++        fprintf(stream, "delete");
+         e = true;
+-    }               
++    }
+     if(port_status_mask & ((1 << 2))){
+         if(e)
+-            fprintf(stream,", ");     
++            fprintf(stream,", ");
+         fprintf(stream, "modify");
+         e = true;
+     }
+     if (!e)
+         fprintf(stream, "none");
+-     fprintf(stream, ")" );            
++     fprintf(stream, ")" );
+ }
+ 
+ void
+ ofl_async_flow_removed(FILE *stream, uint32_t flow_rem_mask){
+     bool e = false;
+-    
+-    fprintf(stream, "flow_removed(" );    
++
++    fprintf(stream, "flow_removed(" );
+     if(flow_rem_mask &  (1 << 0)){
+         fprintf(stream, "idle_timeout");
+-        e = true;   
+-    }        
++        e = true;
++    }
+     if(flow_rem_mask & ((1 << 1))){
+         if(e)
+-            fprintf(stream,", ");      
+-        fprintf(stream, "hard_timeout"); 
+-        e = true;           
++            fprintf(stream,", ");
++        fprintf(stream, "hard_timeout");
++        e = true;
+     }
+     if(flow_rem_mask & ((1 << 2))){
+         if(e)
+-            fprintf(stream,", ");      
++            fprintf(stream,", ");
+         fprintf(stream, "delete");
+         e = true;
+-    }        
++    }
+     if(flow_rem_mask & ((1 << 3))){
+         if(e)
+-            fprintf(stream,", ");        
++            fprintf(stream,", ");
+         fprintf(stream, "group delete");
+         e = true;
+-     }   
++     }
+     if(flow_rem_mask & ((1 << 4))){
+         if(e)
+-            fprintf(stream,", ");       
+-        fprintf(stream, "meter delete");        
++            fprintf(stream,", ");
++        fprintf(stream, "meter delete");
+         e = true;
+     }
+     if (!e)
+-        fprintf(stream, "none"); 
++        fprintf(stream, "none");
+ 
+-    fprintf(stream, ")" );          
++    fprintf(stream, ")" );
+ }
+ 
+ char *
+ ofl_hex_to_string(uint8_t *buf, size_t buf_size) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_hex_print(stream, buf, buf_size);
+     fclose(stream);
+     return str;
+--- CPqD-ofsoftswitch13-7fa7eae/oflib/ofl-structs-print.c
++++ CPqD-ofsoftswitch13-7fa7eae/oflib/ofl-structs-print.c
+@@ -1,5 +1,5 @@
+ /* Copyright (c) 2011, TrafficLab, Ericsson Research, Hungary
+- * Copyright (c) 2012, CPqD, Brazil 
++ * Copyright (c) 2012, CPqD, Brazil
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -58,7 +58,7 @@
+ ofl_structs_port_to_string(struct ofl_port *port) {
+         char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_port_print(stream, port);
+     fclose(stream);
+     return str;
+@@ -82,7 +82,7 @@
+ ofl_structs_instruction_to_string(struct ofl_instruction_header *inst, struct ofl_exp *exp) {
+         char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_instruction_print(stream, inst, exp);
+     fclose(stream);
+     return str;
+@@ -126,7 +126,7 @@
+         }
+         case (OFPIT_METER):{
+             struct ofl_instruction_meter *i = (struct ofl_instruction_meter *)inst;
+-            fprintf(stream, "{meter=\"%u\"}", i->meter_id);          
++            fprintf(stream, "{meter=\"%u\"}", i->meter_id);
+             break;
+         }
+         case (OFPIT_EXPERIMENTER): {
+@@ -149,26 +149,26 @@
+ ofl_structs_match_to_string(struct ofl_match_header *match, struct ofl_exp *exp) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_match_print(stream, match, exp);
+     fclose(stream);
+     return str;
+ }
+ 
+-void 
++void
+ print_oxm_tlv(FILE *stream, struct ofl_match_tlv *f, size_t *size){
+                 uint8_t field = OXM_FIELD(f->header);
+ 
+                 if (field == OFPXMT_OFB_IN_PORT){
+                     fprintf(stream, "in_port=\"%d\"",*((uint32_t*) f->value));
+-                    *size -= 8;   
+-                    if (*size > 4)                                  
++                    *size -= 8;
++                    if (*size > 4)
+                         fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_IN_PHY_PORT){
+                             fprintf(stream, "in_phy_port=\"%d\"",*((uint32_t*) f->value));
+-                            *size -= 8;   
+-                            if (*size > 4)                                  
++                            *size -= 8;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_VLAN_VID){
+@@ -179,78 +179,78 @@
+                                 fprintf(stream, "vlan_vid= any");
+                             else
+                             	fprintf(stream, "vlan_vid=\"%d\"",*v & VLAN_VID_MASK);
+-                            *size -= 6;                                
+-                            if (*size > 4)                                
++                            *size -= 6;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_VLAN_PCP){
+                             fprintf(stream, "vlan_pcp=\"%d\"", *f->value & 0x7);
+-                            *size -= 5;                                
+-                            if (*size > 4)                                
++                            *size -= 5;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                } 
++                }
+                 else if (field == OFPXMT_OFB_ETH_TYPE){
+                             uint16_t *v = (uint16_t *) f->value;
+                             fprintf(stream, "eth_type=");
+                             fprintf(stream,"\"0x%x\"",  *v);
+-                            *size -= 6; 
+-                            if (*size > 4)                                
+-                                fprintf(stream, ", ");                            
++                            *size -= 6;
++                            if (*size > 4)
++                                fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_TCP_SRC){
+                             fprintf(stream, "tcp_src=\"%d\"",*((uint16_t*) f->value));
+-                            *size -= 6;                                
+-                            if (*size > 4)                                
++                            *size -= 6;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_TCP_DST){
+                             fprintf(stream, "tcp_dst=\"%d\"",*((uint16_t*) f->value));
+-                            *size -= 6;                                
+-                            if (*size > 4)                                
++                            *size -= 6;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_UDP_SRC){
+                             fprintf(stream, "udp_src=\"%d\"",*((uint16_t*) f->value));
+-                            *size -= 6;                                
+-                            if (*size > 4)                                
++                            *size -= 6;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_UDP_DST){
+                             fprintf(stream, "udp_dst=\"%d\"",*((uint16_t*) f->value));
+-                            *size -= 6;                                
+-                            if (*size > 4)                                
++                            *size -= 6;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_SCTP_SRC){
+                             fprintf(stream, "sctp_src=\"%d\"",*((uint16_t*) f->value));
+-                            *size -= 6;                                
+-                            if (*size > 4)                                
++                            *size -= 6;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_SCTP_DST){
+                             fprintf(stream, "sctp_dst=\"%d\"",*((uint16_t*) f->value));
+-                            *size -= 6;                                
+-                            if (*size > 4)                                
++                            *size -= 6;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                }                  
++                }
+                 else if (field == OFPXMT_OFB_ETH_SRC){
+                             fprintf(stream, "eth_src=\""ETH_ADDR_FMT"\"", ETH_ADDR_ARGS(f->value));
+-                            *size -= 10;                                
++                            *size -= 10;
+                             if (OXM_HASMASK(f->header)){
+                                 *size -= 6;
+                                 fprintf(stream, ", eth_src_mask=\""ETH_ADDR_FMT"\"", ETH_ADDR_ARGS(f->value + 6));
+                             }
+-                            if (*size > 4)                                
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_ETH_DST){
+                             fprintf(stream, "eth_dst=\""ETH_ADDR_FMT"\"", ETH_ADDR_ARGS(f->value));
+-                            *size -= 10;                                
++                            *size -= 10;
+                             if (OXM_HASMASK(f->header)){
+                                 *size -= 6;
+                                 fprintf(stream, ", eth_dst_mask=\""ETH_ADDR_FMT"\"", ETH_ADDR_ARGS(f->value + 6));
+                             }
+-                            if (*size > 4)                                
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_IPV4_DST){
+@@ -259,58 +259,58 @@
+                             if (OXM_HASMASK(f->header)){
+                                 *size -= 4;
+                                 fprintf(stream, ", ipv4_dst_mask=\""IP_FMT"\"",IP_ARGS(f->value + 4));
+-                            }                                
+-                            if (*size > 4)                                
++                            }
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                }                                                 
++                }
+                 else if (field == OFPXMT_OFB_IPV4_SRC){
+                             fprintf(stream, "ipv4_src=\""IP_FMT"\"",IP_ARGS(f->value));
+-                            *size -= 8;                                
++                            *size -= 8;
+                             if (OXM_HASMASK(f->header)){
+                                 *size -= 4;
+                                 fprintf(stream, ", ipv4_src_mask=\""IP_FMT"\"",IP_ARGS(f->value + 4));
+                             }
+-                            if (*size > 4)                                
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_IP_PROTO){
+                             fprintf(stream, "ip_proto=\"%d\"", *f->value);
+-                            *size -= 5;                                
+-                            if (*size > 4)                                
++                            *size -= 5;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                } 
++                }
+                 else if (field == OFPXMT_OFB_IP_DSCP){
+                             fprintf(stream, "ip_dscp=\"%d\"", *f->value & 0x3f);
+-                            *size -= 5;                                
+-                            if (*size > 4)                                
++                            *size -= 5;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                } 
++                }
+                 else if (field == OFPXMT_OFB_IP_ECN){
+                             fprintf(stream, "ip_ecn=\"%d\"", *f->value & 0x3);
+-                            *size -= 5;                                
+-                            if (*size > 4)                                
++                            *size -= 5;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                } 
++                }
+                 else if (field == OFPXMT_OFB_ICMPV4_TYPE){
+                             fprintf(stream, "icmpv4_type= \"%d\"", *f->value);
+-                            *size -= 5;                                
+-                            if (*size > 4)                                
++                            *size -= 5;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                } 
++                }
+                 else if (field == OFPXMT_OFB_ICMPV4_CODE){
+                             fprintf(stream, "icmpv4_code=\"%d\"", *f->value);
+-                            *size -= 5;                                
+-                            if (*size > 4)                                
++                            *size -= 5;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                }   
++                }
+                 else if (field == OFPXMT_OFB_ARP_SHA){
+                             fprintf(stream, "arp_sha=\""ETH_ADDR_FMT"\"", ETH_ADDR_ARGS(f->value));
+-                            *size -= 10;                                
++                            *size -= 10;
+                             if (OXM_HASMASK(f->header)){
+                                 *size -= 6;
+                                 fprintf(stream, ", arp_sha_mask=\""ETH_ADDR_FMT"\"", ETH_ADDR_ARGS(f->value + 6));
+                             }
+-                            if (*size > 4)                                
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_ARP_THA){
+@@ -321,39 +321,39 @@
+                                 *size -= 6;
+                                 fprintf(stream, ", arp_tha_mask=\""ETH_ADDR_FMT"\"", ETH_ADDR_ARGS(f->value + 6));
+                             }
+-                            if (*size > 4)                                
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                }                      
++                }
+                 else if (field == OFPXMT_OFB_ARP_SPA){
+                             fprintf(stream, "arp_spa=\""IP_FMT"\"",IP_ARGS(f->value));
+-                            *size -= 8;                                
++                            *size -= 8;
+                             if (OXM_HASMASK(f->header)){
+                                 *size -= 4;
+                                 fprintf(stream, ", arp_sha_mask=\""IP_FMT"\"",IP_ARGS(f->value + 4));
+-                            }           
+-                            if (*size > 4)                                
++                            }
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                } 
++                }
+                 else if (field == OFPXMT_OFB_ARP_TPA){
+                             fprintf(stream, "arp_tpa=\""IP_FMT"\"",IP_ARGS(f->value));
+-                            *size -= 8;                                
++                            *size -= 8;
+                             if (OXM_HASMASK(f->header)){
+                                 *size -= 4;
+                                 fprintf(stream, ", arp_tpa_mask=\""IP_FMT"\"",IP_ARGS(f->value + 4));
+                             }
+-                            if (*size > 4)                                
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                } 
++                }
+                 else if (field == OFPXMT_OFB_ARP_OP){
+                             uint16_t *v = (uint16_t *) f->value;
+                             fprintf(stream, "arp_op=\"0x");
+                             fprintf(stream,"%x\"",  *v);
+-                            *size -= 6;                            
+-                            if (*size > 4)                                
++                            *size -= 6;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_IPV6_SRC){
+-                        char addr_str[INET6_ADDRSTRLEN]; 
++                        char addr_str[INET6_ADDRSTRLEN];
+                         inet_ntop(AF_INET6, f->value, addr_str, INET6_ADDRSTRLEN);
+                         *size -= 20;
+                         fprintf(stream, "nw_src_ipv6=\"%s\"", addr_str);
+@@ -362,11 +362,11 @@
+                                 inet_ntop(AF_INET6, f->value + 16, addr_str, INET6_ADDRSTRLEN);
+                                 fprintf(stream, ", nw_src_ipv6_mask=\"%s\"", addr_str);
+                         }
+-                        if (*size > 4)                                
+-                                fprintf(stream, ", ");        
++                        if (*size > 4)
++                                fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_IPV6_DST){
+-                        char addr_str[INET6_ADDRSTRLEN]; 
++                        char addr_str[INET6_ADDRSTRLEN];
+                         inet_ntop(AF_INET6, f->value, addr_str, INET6_ADDRSTRLEN);
+                         *size -= 20;
+                         fprintf(stream, "nw_dst_ipv6=\"%s\"", addr_str);
+@@ -375,80 +375,80 @@
+                                 inet_ntop(AF_INET6, f->value + 16, addr_str, INET6_ADDRSTRLEN);
+                                 fprintf(stream, ", nw_dst_ipv6_mask=\"%s\"", addr_str);
+                         }
+-                        if (*size > 4)                                
+-                                fprintf(stream, ", ");        
++                        if (*size > 4)
++                                fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_IPV6_ND_TARGET){
+-                        char addr_str[INET6_ADDRSTRLEN]; 
++                        char addr_str[INET6_ADDRSTRLEN];
+                         inet_ntop(AF_INET6, f->value, addr_str, INET6_ADDRSTRLEN);
+                         *size -= 20;
+                         fprintf(stream, "ipv6_nd_target=\"%s\"", addr_str);
+-                        if (*size > 4)                                
+-                                fprintf(stream, ", ");        
+-                }  
++                        if (*size > 4)
++                                fprintf(stream, ", ");
++                }
+                  else if (field == OFPXMT_OFB_IPV6_ND_SLL){
+                             fprintf(stream, "ipv6_nd_sll=\""ETH_ADDR_FMT"\"", ETH_ADDR_ARGS(f->value));
+-                            *size -= 10;                                
+-                            if (*size > 4)                                
++                            *size -= 10;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_IPV6_ND_TLL){
+                             fprintf(stream, "ipv6_nd_tll=\""ETH_ADDR_FMT"\"", ETH_ADDR_ARGS(f->value));
+-                            *size -= 10;                                
+-                            if (*size > 4)                                
++                            *size -= 10;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_IPV6_FLABEL){
+                             uint32_t mask = 0x000fffff;
+                             *size -= 8;
+-                            fprintf(stream, "ipv6_flow_label=\"%d\"",*((uint32_t*) f->value) & mask );                              
++                            fprintf(stream, "ipv6_flow_label=\"%d\"",*((uint32_t*) f->value) & mask );
+                             if (OXM_HASMASK(f->header)){
+                                 uint8_t *flabel_mask = (uint8_t*) f->value + 4;
+                                 *size -= 4;
+-                                fprintf(stream, ", ipv6_flow_label_mask=\"%d\"",*((uint32_t*)flabel_mask)); 
+-                            }                         
+-                            if (*size > 4)                                
++                                fprintf(stream, ", ipv6_flow_label_mask=\"%d\"",*((uint32_t*)flabel_mask));
++                            }
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_ICMPV6_TYPE){
+                             fprintf(stream, "icmpv6_type=\"%d\"", *f->value);
+-                            *size -= 5;                                
+-                            if (*size > 4)                                
++                            *size -= 5;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                } 
++                }
+                 else if (field == OFPXMT_OFB_ICMPV6_CODE){
+                             fprintf(stream, "icmpv6_code=\"%d\"", *f->value);
+-                            *size -= 5;                                
+-                            if (*size > 4)                                
++                            *size -= 5;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_MPLS_LABEL){
+                             uint32_t mask = 0xfffff;
+                             fprintf(stream, "mpls_label=\"%d\"",((uint32_t) *f->value) & mask );
+-                            *size -= 8;                                
+-                            if (*size > 4)                                
++                            *size -= 8;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_MPLS_TC){
+                             fprintf(stream, "mpls_tc=\"%d\"", *f->value & 0x3);
+-                            *size -= 5;                                
+-                            if (*size > 4)                                
++                            *size -= 5;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_MPLS_BOS){
+                             fprintf(stream, "mpls_bos=\"%d\"", *f->value & 0xfe);
+-                            *size -= 5;                                
+-                            if (*size > 4)                                
++                            *size -= 5;
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                }                  
++                }
+                 else if (field == OFPXMT_OFB_METADATA){
+                             fprintf(stream, "metadata=\"%lld\"", *((uint64_t*) f->value));
+                             *size -= 12;
+                             if (OXM_HASMASK(f->header)){
+                                 fprintf(stream, ", metadata_mask=\"%lld\"", *((uint64_t*) f->value+ 8 ));
+                                 *size -= 8;
+-                            }                            
+-                            if (*size > 4)                                
++                            }
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_PBB_ISID   ){
+@@ -457,8 +457,8 @@
+                             if (OXM_HASMASK(f->header)){
+                                 fprintf(stream, ", pbb_isid_mask=\"%d\"", *((uint32_t*) f->value +4));
+                                 *size -= 4;
+-                            }                            
+-                            if (*size > 4)                                
++                            }
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_TUNNEL_ID){
+@@ -467,22 +467,22 @@
+                             if (OXM_HASMASK(f->header)){
+                                 fprintf(stream, ", tunnel_id_mask=\"%lld\"", *((uint64_t*) f->value+ 8 ));
+                                 *size -= 8;
+-                            }                            
++                            }
+                             if (*size > 4)
+-                                fprintf(stream, ", ");                                                           
++                                fprintf(stream, ", ");
+                 }
+                 else if (field == OFPXMT_OFB_IPV6_EXTHDR){
+                             fprintf(stream, "ext_hdr=\\");
+                             ofl_ipv6_ext_hdr_print(stream, *((uint16_t*) f->value) );
+-                            *size -= 6;                                
++                            *size -= 6;
+                             if (OXM_HASMASK(f->header)){
+                                 *size -= 2;
+                                 fprintf(stream, ", ext_hdr_mask=\"0x%x\"",*((uint16_t*) f->value + 4));
+-                            }           
+-                            if (*size > 4)                                
++                            }
++                            if (*size > 4)
+                                 fprintf(stream, ", ");
+-                }                 
+-                                
++                }
++
+ }
+ 
+ static void print_oxm_match(FILE *stream, struct ofl_match *m){
+@@ -490,11 +490,11 @@
+         size_t size = m->header.length;
+         fprintf(stream, "oxm{");
+         if (size) {
+-            /*TODO: Create a mapping of header values and names to avoid so many comparisons */ 
+-            HMAP_FOR_EACH(f, struct ofl_match_tlv, hmap_node, &m->match_fields){                             
++            /*TODO: Create a mapping of header values and names to avoid so many comparisons */
++            HMAP_FOR_EACH(f, struct ofl_match_tlv, hmap_node, &m->match_fields){
+                 print_oxm_tlv(stream, f, &size);
+             }
+-        }    
++        }
+         else fprintf(stream, "all match");
+         fprintf(stream, "}");
+ }
+@@ -525,7 +525,7 @@
+ ofl_structs_config_to_string(struct ofl_config *c) {
+         char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_config_print(stream, c);
+     fclose(stream);
+     return str;
+@@ -541,7 +541,7 @@
+ ofl_structs_bucket_to_string(struct ofl_bucket *b, struct ofl_exp *exp) {
+         char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_bucket_print(stream, b, exp);
+     fclose(stream);
+     return str;
+@@ -569,7 +569,7 @@
+ ofl_structs_queue_to_string(struct ofl_packet_queue *q) {
+         char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_queue_print(stream, q);
+     fclose(stream);
+     return str;
+@@ -595,7 +595,7 @@
+ ofl_structs_queue_prop_to_string(struct ofl_queue_prop_header *p) {
+         char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_queue_prop_print(stream, p);
+     fclose(stream);
+     return str;
+@@ -612,7 +612,7 @@
+             fprintf(stream, "{rate=\"%u\"}", pm->rate);
+             break;
+         }
+-        
++
+     }
+ 
+ }
+@@ -621,7 +621,7 @@
+ ofl_structs_flow_stats_to_string(struct ofl_flow_stats *s, struct ofl_exp *exp) {
+         char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_flow_stats_print(stream, s, exp);
+     fclose(stream);
+     return str;
+@@ -654,7 +654,7 @@
+ ofl_structs_bucket_counter_to_string(struct ofl_bucket_counter *s) {
+         char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_bucket_counter_print(stream, s);
+     fclose(stream);
+     return str;
+@@ -670,7 +670,7 @@
+ ofl_structs_group_stats_to_string(struct ofl_group_stats *s) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_group_stats_print(stream, s);
+     fclose(stream);
+     return str;
+@@ -697,7 +697,7 @@
+ ofl_structs_meter_band_to_string(struct ofl_meter_band_header* s){
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_meter_band_print(stream, s);
+     fclose(stream);
+     return str;
+@@ -713,29 +713,29 @@
+         case(OFPMBT_DROP):{
+             struct ofl_meter_band_drop *d = (struct ofl_meter_band_drop*)s;
+             fprintf(stream, ", rate=\"%"PRIu32"\", burst_size=\"%"PRIu32"\"}",
+-                  d->rate, d->burst_size);                    
++                  d->rate, d->burst_size);
+             break;
+         }
+         case(OFPMBT_DSCP_REMARK):{
+             struct ofl_meter_band_dscp_remark *d = (struct ofl_meter_band_dscp_remark*)s;
+             fprintf(stream, ", rate=\"%"PRIu32"\", burst_size=\"%"PRIu32"\", prec_level=\"%u\"}",
+-                  d->rate, d->burst_size, d->prec_level);         
++                  d->rate, d->burst_size, d->prec_level);
+             break;
+         }
+         case(OFPMBT_EXPERIMENTER):{
+             struct ofl_meter_band_experimenter *d = (struct ofl_meter_band_experimenter*)s;
+             fprintf(stream, ", rate=\"%"PRIu32"\", burst_size=\"%"PRIu32"\", exp_id=\"%"PRIu32"\"}",
+-                  d->rate, d->burst_size, d->experimenter);           
++                  d->rate, d->burst_size, d->experimenter);
+             break;
+         }
+     }
+ }
+ 
+-char* 
++char*
+ ofl_structs_meter_band_stats_to_string(struct ofl_meter_band_stats* s){
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_meter_band_stats_print(stream, s);
+     fclose(stream);
+     return str;
+@@ -747,11 +747,11 @@
+                   s->packet_band_count, s->byte_band_count);
+ }
+ 
+-char* 
++char*
+ ofl_structs_meter_stats_to_string(struct ofl_meter_stats* s){
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_meter_stats_print(stream, s);
+     fclose(stream);
+     return str;
+@@ -762,24 +762,24 @@
+     size_t i;
+ 
+     fprintf(stream, "{meter= %x\"", s->meter_id);
+-    fprintf(stream, "\", flow_cnt=\"%u\", pkt_in_cnt=\"%"PRIu64"\", byte_in_cnt=\"%"PRIu64"\"" 
++    fprintf(stream, "\", flow_cnt=\"%u\", pkt_in_cnt=\"%"PRIu64"\", byte_in_cnt=\"%"PRIu64"\""
+                     ", duration_sec=\"%"PRIu32"\", duration_nsec=\"%"PRIu32"\", bands=[",
+-                  s->flow_count, s->packet_in_count, s->byte_in_count, 
++                  s->flow_count, s->packet_in_count, s->byte_in_count,
+                   s->duration_sec, s->duration_nsec);
+-  
++
+     for (i=0; i<s->meter_bands_num; i++) {
+         ofl_structs_meter_band_stats_print(stream, s->band_stats[i]);
+         if (i < s->meter_bands_num - 1) { fprintf(stream, ", "); };
+     }
+ 
+-    fprintf(stream, "]}");                
++    fprintf(stream, "]}");
+ }
+ 
+-char* 
++char*
+ ofl_structs_meter_config_to_string(struct ofl_meter_config* s){
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_meter_config_print(stream, s);
+     fclose(stream);
+     return str;
+@@ -788,25 +788,25 @@
+ void
+ ofl_structs_meter_config_print(FILE *stream, struct ofl_meter_config* s){
+     size_t i;
+-    
++
+     fprintf(stream, "{meter= %x\"", s->meter_id);
+     fprintf(stream, "\", flags=\"%"PRIx16"\", bands=[",
+-                  s->flags);    
++                  s->flags);
+ 
+     for (i=0; i<s->meter_bands_num; i++) {
+         ofl_structs_meter_band_print(stream, s->bands[i]);
+         if (i < s->meter_bands_num - 1) { fprintf(stream, ", "); };
+     }
+ 
+-    fprintf(stream, "]}"); 
++    fprintf(stream, "]}");
+ 
+ }
+ 
+-char* 
++char*
+ ofl_structs_meter_features_to_string(struct ofl_meter_features* s){
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_meter_features_print(stream, s);
+     fclose(stream);
+     return str;
+@@ -814,11 +814,11 @@
+ 
+ void
+ ofl_structs_meter_features_print(FILE *stream, struct ofl_meter_features* s){
+-    
++
+     fprintf(stream, "{max_meter=\"%"PRIu32"\", band_types=\"%"PRIx32"\","
+-            "capabilities =\"%"PRIx32"\", max_bands = %u , max_color = %u",  
++            "capabilities =\"%"PRIx32"\", max_bands = %u , max_color = %u",
+                 s->max_meter, s->band_types, s->capabilities, s->max_bands, s->max_color);
+-    fprintf(stream, "}"); 
++    fprintf(stream, "}");
+ 
+ }
+ 
+@@ -826,7 +826,7 @@
+ ofl_structs_table_stats_to_string(struct ofl_table_stats *s) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+ 
+     ofl_structs_table_stats_print(stream, s);
+ 
+@@ -848,7 +848,7 @@
+ ofl_structs_table_properties_to_string(struct ofl_table_feature_prop_header *s){
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_table_properties_print(stream, s);
+     fclose(stream);
+     return str;
+@@ -920,7 +920,7 @@
+ ofl_structs_table_features_to_string(struct ofl_table_features *s){
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_table_features_print(stream, s);
+     fclose(stream);
+     return str;
+@@ -948,7 +948,7 @@
+ char *
+ ofl_structs_port_stats_to_string(struct ofl_port_stats *s) {
+         char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_port_stats_print(stream, s);
+     fclose(stream);
+     return str;
+@@ -973,7 +973,7 @@
+ ofl_structs_queue_stats_to_string(struct ofl_queue_stats *s) {
+         char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_queue_stats_print(stream, s);
+     fclose(stream);
+     return str;
+@@ -995,7 +995,7 @@
+ ofl_structs_group_desc_stats_to_string(struct ofl_group_desc_stats *s, struct ofl_exp *exp) {
+         char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_group_desc_stats_print(stream, s, exp);
+     fclose(stream);
+     return str;
+@@ -1023,7 +1023,7 @@
+ ofl_structs_async_config_to_string(struct ofl_async_config *s) {
+     char *str;
+     size_t str_size;
+-    FILE *stream = open_memstream(&str, &str_size);
++    FILE *stream = (FILE*) open_memstream(&str, &str_size);
+     ofl_structs_async_config_print(stream, s);
+     fclose(stream);
+     return str;
+@@ -1036,10 +1036,10 @@
+     ofl_async_packet_in(stream, s->packet_in_mask[0]);
+     ofl_async_port_status(stream, s->port_status_mask[0]);
+     ofl_async_flow_removed(stream, s->flow_removed_mask[0]);
+-    fprintf(stream, "], ");    
++    fprintf(stream, "], ");
+     fprintf(stream, "slave=[");
+     ofl_async_packet_in(stream, s->packet_in_mask[1]);
+     ofl_async_port_status(stream, s->port_status_mask[1]);
+     ofl_async_flow_removed(stream, s->flow_removed_mask[1]);
+-    fprintf(stream, "]}");        
++    fprintf(stream, "]}");
+ }
