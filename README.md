@@ -6,7 +6,8 @@ files that will be used when building the OpenWrt image.
 
 This files are based on OpenFlow 1.0 for OpenWRT[1]. 
 
-For build instructions check the ofsoftwitch 13 wiki page
+For build instructions check the ofsoftwitch 13 wiki page.
+https://github.com/CPqD/ofsoftswitch13/wiki/OpenFlow-1.3-for-OpenWRT
 
 
 
