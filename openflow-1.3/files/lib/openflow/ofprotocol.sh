@@ -24,9 +24,9 @@ setup_ofprotocol() {
 		[ -z "$dp" -o -z "$ofctl" ] && echo "no controller specified" && return 1
 		if [[ "$mode" == "inband" ]]			
 		then
-			ofprotocol tcp:127.0.0.1:6634 "$ofctl" --fail=closed "-D" "--pidfile=$pidfile" --listen=ptcp: --log-file="/tmp/log/ofprotocol.log" &
+			ofprotocol tcp:127.0.0.1:6634 "$ofctl" --fail=closed "-D" "--pidfile=$pidfile" --listen=ptcp: --log-file="/tmp/log/ofprotocol.log" "--inactivity-probe=90" &
 		else
-			ofprotocol tcp:127.0.0.1:6634 "$ofctl" --fail=closed "-D" "--pidfile=$pidfile" --out-of-band --listen=ptcp: --log-file="/tmp/log/ofdatapath.log" &
+			ofprotocol tcp:127.0.0.1:6634 "$ofctl" --fail=closed "-D" "--pidfile=$pidfile" --out-of-band --listen=ptcp: --log-file="/tmp/log/ofdatapath.log" "--inactivity-probe=90" &
 		fi
 		lock -u "/var/lock/ofprotocol"
 	fi
